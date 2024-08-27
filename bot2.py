@@ -22,12 +22,28 @@ def send_message(message):
             driver.get(link)
             while len(driver.find_elements(By.ID, 'side')) < 1:
                 sleep(1)
-
             sleep(5)
             driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[2]/div[2]/button/span').click()
             sleep(5)
         except:
             print(f'Não foi possível enviar mensagem para {contato[0]}')
+
+def send_document():
+    for contato in contatos.values:
+        try:
+            link = f'https://web.whatsapp.com/send?phone={contato[1]}'
+            driver.get(link)
+            while len(driver.find_elements(By.ID, 'side')) < 1:
+                sleep(1)
+            sleep(2)
+            driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[1]/div[2]/div/div/div/span').click()
+            sleep(2)
+            driver.find_element(By.XPATH, '//*[@id="main"]/footer/div[1]/div/span[2]/div/div[1]/div[2]/div/span/div/ul/div/div[1]/li/div/span').click()
+            sleep(2)
+        except:
+            print(f'Não foi possível enviar mensagem para {contato[0]}')
+
+    print("OK")
     
 if __name__ == '__main__':
 
@@ -43,5 +59,6 @@ if __name__ == '__main__':
     driver.get("https://web.whatsapp.com/")
     driver.maximize_window()
     is_connected()
-    send_message("Boa Noite")
+    # send_message("Boa Noite")
+    send_document()
     driver.quit()
