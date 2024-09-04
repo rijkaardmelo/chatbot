@@ -1,4 +1,5 @@
-from flask import Flask, make_response, jsonify, render_template
+from flask import Flask, make_response, jsonify, render_template, send_from_directory, request, redirect, url_for
+from werkzeug.utils import secure_filename
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from pynput.keyboard import Key, Controller
@@ -6,7 +7,15 @@ from time import sleep
 import pandas
 import os
 
-app = Flask(__name__)
+UPLOAD_FOLDER = 'upload'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
+app = Flask(__name__, static_folder='frontend/build/staticy', template_folder='frontend/build')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # def is_connected():
 #     time = 0
@@ -18,6 +27,28 @@ app = Flask(__name__)
 #             time +=1
 #             sleep(1)
 #     return False
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if 'file' not in request.files:
+        return jsonify({"message" : "No file part"}), 500
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"message" : "No selected file"}), 500
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return jsonify({"message": "File successfully uploaded"}), 201
+    
+@app.route("/file", methods=["GET"])
+def list_file():
+    files = []
+    for filename in os.listdir(UPLOAD_FOLDER):
+        fileaddress = os.path.join(UPLOAD_FOLDER, filename)
+        if(os.path.isfile(fileaddress)):
+            files.append(filename)
+    return jsonify(files)
+
 
 # @app.route("/send_message", methods=["GET"])
 # def send_message():
@@ -80,7 +111,7 @@ app = Flask(__name__)
 #             print(f'Não foi possível enviar documento para {contato[0]}')
 
 @app.route('/', methods=['GET'])  
-def home():
+def index():
     return render_template('index.html')
     
 if __name__ == '__main__':
